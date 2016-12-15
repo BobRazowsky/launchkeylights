@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "preinstall": "npm install -g grunt-cli"
   },
   "repository": {
     "type": "git",
@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/BobRazowsky/launchkeylights/issues"
   },
-  "homepage": "https://github.com/BobRazowsky/launchkeylights#readme"
+  "homepage": "https://github.com/BobRazowsky/launchkeylights#readme",
+  "devDependencies": {
+    "grunt": "^1.0.1"
+  }
 }
