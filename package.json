@@ -17,6 +17,12 @@
   },
   "homepage": "https://github.com/BobRazowsky/launchkeylights#readme",
   "devDependencies": {
-    "grunt": "^1.0.1"
+    "grunt": "^1.0.1",
+    "grunt-browserify": "^5.0.0",
+    "grunt-contrib-copy": "^1.0.0",
+    "grunt-contrib-watch": "^1.0.0"
+  },
+  "dependencies": {
+    "webmidi": "^2.0.0-rc.2"
   }
 }
