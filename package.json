@@ -23,6 +23,6 @@
     "grunt-contrib-watch": "^1.0.0"
   },
   "dependencies": {
-    "webmidi": "^2.0.0-rc.2"
+
   }
 }
