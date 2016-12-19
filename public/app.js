@@ -6,7 +6,24 @@ var launchkey = false;
 var input = "";
 var secret = "38384040373937396665"; // Aka KONAMI code (^ ^ v v < > < > b a)
 var timer;
-
+var devices = [
+	{
+		"name" : "Launchkey MKII",
+		"short" : "lkmk2",
+		"padInputAttack" : 153,
+		"padInputRelease" : 137,
+		"padColorOutput" : 159,
+		"range" : [36, 52]
+	},
+	{
+		"name" : "Launchpad S",
+		"short" : "lps",
+		"padInputAttack" : 144,
+		"padInputRelease" : 144,
+		"padColorOutput" : 159
+	}
+];
+var config = null;
 window.addEventListener('load', init, false);
 
 function domWrite(div, text){
@@ -36,37 +53,46 @@ var listInputsAndOutputs = function( midiAccess ) {
 	for (var entry of midiAccess.inputs) {
 		var inputs = midi.inputs.values();
 	    for (var input = inputs.next(); input && !input.done; input = inputs.next()) {
+	    	console.log(input.value);
 	    	if(input.value.name.indexOf("Launchkey") != -1){
 	    		domWrite("infoTxt", "Launchkey detected");
+	    		config = devices[0];
+	    		launchkey = true;
+	    	}
+	    	else if(input.value.name.indexOf("Launchpad S") != -1){
+	    		domWrite("infoTxt", "Launchpad S detected");
+	    		config = devices[1];
 	    		launchkey = true;
 	    	}
 	        input.value.onmidimessage = onMIDIMessage;
+	        computeGamePossibilities(config.short);
 	    }
 	}
 
 	for (var entry of midiAccess.outputs) {
-		this.output = entry[1];
-		for(var i = 36; i < 52; i++){
-		output.send([159, i, 3]);
-	}
+		// console.log(entry[1]);
+		output = entry[1];
+		// for(var i = 36; i < 52; i++){
+		// 	output.send([config.padInputAttack, i, 3]);
+		// }
 	}
 };
 
 var onMIDIMessage = function(message) {
     data = message.data;
-    //console.log(data);
-    if(data[0] == 137){
-        if(data[1] >= 36 && data[1] <= 51){
+    console.log(data);
+    if(data[0] == config.padInputAttack){
+        if(data[2] !== 0){
         	if(inGame === true){
         		addToPlayer(data[1]);        		
         	}
         }
     }
-    else if(data[0] == 176){
-    	if(data[1] == 104){
-    		newGame();
-    	}
-    }
+    // else if(data[0] == 176){
+    // 	if(data[1] == 104){
+    // 		newGame();
+    // 	}
+    // }
 };
 
 function initialize(){
@@ -106,7 +132,7 @@ var initAudio = function(){
 	    window.AudioContext = window.AudioContext||window.webkitAudioContext;
 	    context = new AudioContext();
 	    document.getElementById("newGameBtn").addEventListener("click", newGame);
-	    document.getElementById("testBtn").addEventListener("click", frenzy);
+	    document.getElementById("testBtn").addEventListener("click", test);
 
 	}
 	catch(e) {
@@ -144,8 +170,7 @@ var resetPads = function(){
 var game = {
 	count: 0,
 	// pads
-	possibilities: [1,2, 3, 4, 5, 6, 7, 8, 
-					9, 10, 11, 12, 13, 14, 15, 16],
+	possibilities: [],
 	currentGame: [],
 	player: [],
 	// frequencies (A4 440 Hz) : C4, C4#, D4, D4#, E4, F4, F4#, G4, G4#, A4, A4#, B4, C5, C5#, D5, D5#
@@ -156,6 +181,20 @@ var game = {
 
 	lives: 3
 };
+
+function computeGamePossibilities(deviceName){
+	if(deviceName == "lkmk2"){
+		game.possibilities = [1,2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+	}else if(deviceName == "lps"){
+		for(var p = 0; p < 120; p++){
+			if(p % 8 == 0 && p !== 0){
+				p += 8;
+			}
+			game.possibilities.push(p);
+		}
+	}
+	console.log(game.possibilities);
+}
 
 function newGame() {
 	domWrite("scoreTxt", "Score : " + game.score.toString());
@@ -215,11 +254,13 @@ function playSound(frequency) {
 }
 
 function test(){
-	var padsColors = [67,75,56,120,5,13,66,8,9,64,56,12,13,72,36,16];
-	for(var i = 36; i < 52; i++){
-		console.log(i, padsColors[i - 36]);
-		output.send([159, i, padsColors[i - 36]]);  //omitting the timestamp means send immediately.
-	}
+	output.send([144, 1, 60]);
+	console.log("test");
+	// var padsColors = [67,75,56,120,5,13,66,8,9,64,56,12,13,72,36,16];
+	// for(var i = 36; i < 52; i++){
+	// 	console.log(i, padsColors[i - 36]);
+	// 	output.send([159, i, padsColors[i - 36]]);  //omitting the timestamp means send immediately.
+	// }
 }
 
 var frenzySpeed = 100;
@@ -296,29 +337,34 @@ function addToPlayer(id) {
 }
 
 function lightGreen(){
-	for(var i = 36; i < 52; i++){
-		output.send([191, 104, 64]);
-		output.send([191, 105, 64]);
-		//output.send([159, i, 17]);  //omitting the timestamp means send immediately.
-	}
+	
+	output.send([191, 104, 64]);
+	output.send([191, 105, 64]);
+	//output.send([159, i, 17]);  //omitting the timestamp means send immediately.
 	setTimeout(function(){
-		resetPads();
+		//resetPads();
 		output.send([191, 104, 0]);
 		output.send([191, 105, 0]);
 	}, 400);
 }
 
 function lightRed(){
-	for(var i = 36; i < 52; i++){
 		output.send([191, 104, 72]);
 		output.send([191, 105, 72]);
 		//output.send([159, i, 5]);  //omitting the timestamp means send immediately.
-	}
 	setTimeout(function(){
-		resetPads();
 		output.send([191, 104, 0]);
 		output.send([191, 105, 0]);
 	}, 400);
+}
+
+function gameOver(){
+	for(var i = 36; i < 52; i++){
+		output.send([159, i, 72]);
+		setTimeout(function(){
+			output.send([159, i, 0]);
+		}, 400);
+	}
 }
 
 function playerTurn(x) {
@@ -334,6 +380,7 @@ function playerTurn(x) {
 				}, 300);
 			}else{
 				domWrite("infoTxt", "Game Over");
+				gameOver();
 				var currentHighScore = localStorage.getItem('highscore') || 0;
 				inGame = false;
 				if(game.score > currentHighScore){

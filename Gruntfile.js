@@ -12,6 +12,15 @@ module.exports = function(grunt) {
 				dest: 'public/',
 			}
 		},
+		// uglify: {
+		// 	client: {
+		// 		files: [{
+		// 			expand: true,
+		// 			src: '**/*.js',
+		// 			dest: 'public'
+		// 		}]
+		// 	}
+		// },
 	    watch: {
 			files: ['client/*'],
 			tasks: ['browserify']
@@ -20,6 +29,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-browserify');
 	grunt.loadNpmTasks('grunt-contrib-watch');
 	grunt.loadNpmTasks('grunt-contrib-copy');
+	//grunt.loadNpmTasks('grunt-contrib-uglify');
 
 	grunt.registerTask('default', ['copy','browserify']);
 };
